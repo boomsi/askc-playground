@@ -58,12 +58,13 @@ corepack yarn init:preview ../my-preview --force
 如果以后为 AskcPreview 配置了 Git SSH 地址，也可以不发布 npm，直接从 Git 仓库执行 CLI：
 
 ```bash
-npm exec --yes \
-  --package=git+ssh://git@github.com:<owner>/<askc-preview-repo>.git \
-  -- create-askc-preview ../my-preview
+cli_dir="$(mktemp -d)"
+git clone --depth 1 git@github.com:boomsi/askc-playground.git "$cli_dir/askc-playground"
+node "$cli_dir/askc-playground/cli/create-askc-preview.cjs" ../my-preview
+rm -rf "$cli_dir"
 ```
 
-这里的 `<owner>/<askc-preview-repo>` 需要替换为 AskcPreview 自己的仓库地址，不能使用 `askit` 或 `keel` 的仓库地址。
+当前根项目包含 React Native 等开发依赖，直接用 `npm exec --package=git+ssh://...` 会触发 npm 安装整套根依赖，并因 askit 的 `workspace:*` peer 声明失败。因此目前使用上面的 SSH 克隆方式；如果需要真正的 `npx xxx` 形式，还需要把 CLI 拆成独立的轻量 npm 包目录。
 
 ## 启动调试
 
