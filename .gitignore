@@ -56,6 +56,7 @@ yarn-error.log
 # Bundle artifact
 *.jsbundle
 counterapp/app.js
+counterapp/.askc-build.*
 
 # Ruby / CocoaPods
 **/Pods/

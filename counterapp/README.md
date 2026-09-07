@@ -40,9 +40,13 @@ ASKC 提供了部分封装后的 UI 组件，位于 `askc` 中的 `src/ui` 目�
 
 ##### 打包
 
+推荐从 AskcPreview 根目录执行：
+
 ```bash
-yarn run build:askc
+corepack yarn build:askc
 ```
+
+该命令会通过 SSH 临时拉取 `git@github.com:boomsi/askit.git` 的 `main` 分支执行 askc CLI，产物为 `counterapp/counterapp.askc`。`counterapp` 内的 `build` 和 `build:askc` 仅保留为转发到根目录的兼容命令。
 
 
 #### ASKC 能力开发

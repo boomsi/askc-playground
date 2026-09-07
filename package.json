@@ -4,10 +4,12 @@
   "private": true,
   "packageManager": "yarn@4.18.0",
   "scripts": {
-    "build:guest": "bun node_modules/keel/src/cli/bin.ts build counterapp/src/unified-app.tsx -o counterapp/app.js --footer counterapp/preview-footer.js --no-minify --dev",
+    "build": "bun node_modules/keel/src/cli/bin.ts build counterapp/src/unified-app.tsx -o counterapp/app.js --footer counterapp/preview-footer.js --no-minify --dev",
+    "build:guest": "corepack yarn build",
+    "build:askc": "bash scripts/build-askc.sh",
     "dev": "node scripts/dev.mjs",
     "start": "corepack yarn dev",
-    "ios": "corepack yarn build:guest && bash scripts/run-ios.sh",
+    "ios": "corepack yarn build && bash scripts/run-ios.sh",
     "android": "react-native run-android",
     "lint": "eslint .",
     "test": "jest",
@@ -16,7 +18,7 @@
   "dependencies": {
     "@react-native/new-app-screen": "0.83.0",
     "askit": "https://github.com/boomsi/askit.git#main",
-    "keel": "https://github.com/boomsi/rill.git#main",
+    "keel": "https://github.com/boomsi/keel.git#main",
     "react": "19.2.0",
     "react-native": "0.83.0",
     "react-native-safe-area-context": "^5.5.2"

@@ -34,7 +34,7 @@ const config = mergeConfig(getDefaultConfig(__dirname), {
           if (!fs.existsSync(appJs)) {
             res.statusCode = 503;
             res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-            res.end('Guest bundle is missing. Run yarn build:guest first.');
+            res.end('Guest bundle is missing. Run yarn build first.');
             return;
           }
           res.setHeader('Content-Type', 'application/javascript');

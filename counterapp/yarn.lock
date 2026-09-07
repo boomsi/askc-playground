@@ -42,7 +42,7 @@ __metadata:
     "@types/react": "npm:^19.0.0"
     askit: "https://github.com/boomsi/askit.git#main"
     dayjs: "npm:^1.11.19"
-    keel: "https://github.com/boomsi/rill.git#main"
+    keel: "https://github.com/boomsi/keel.git#main"
     react: "npm:^19.0.0"
     typescript: "npm:^5.7.2"
   languageName: unknown
@@ -62,9 +62,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"keel@https://github.com/boomsi/rill.git#main":
+"keel@https://github.com/boomsi/keel.git#main":
   version: 0.1.0
-  resolution: "keel@https://github.com/boomsi/rill.git#commit=ae153c9893ca0e6e7f30afdd483b6db87098740c"
+  resolution: "keel@https://github.com/boomsi/keel.git#commit=ae153c9893ca0e6e7f30afdd483b6db87098740c"
   dependencies:
     "@babel/runtime": "npm:^7.28.6"
   peerDependencies:

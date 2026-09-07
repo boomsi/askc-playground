@@ -6,7 +6,8 @@ Askc 预览器：使用 React Native 宿主加载并预览 Keel guest bundle。
 
 - Node.js `>=20`
 - Yarn `4.18.0`（项目已固定版本）
-- Bun（用于构建 guest bundle）
+- Bun（用于构建 guest bundle 和执行 askc CLI）
+- `git` 与 GitHub SSH key（仅执行 `build:askc` 时需要访问 `git@github.com:boomsi/askit.git`）
 - iOS 调试：Xcode、CocoaPods、已启动的 iOS Simulator
 - Android 调试：Android Studio、Android SDK 和已启动的模拟器或设备
 
@@ -86,8 +87,16 @@ kill <PID>
 - 只想手动构建 guest bundle：
 
   ```bash
-  corepack yarn build:guest
+  corepack yarn build
   ```
+
+- 构建可交付的 `.askc` 包：
+
+  ```bash
+  corepack yarn build:askc
+  ```
+
+  `build:askc` 会临时通过 SSH 拉取 `boomsi/askit` 的 `main` 分支，直接执行其中的 `cli/askc.ts`，构建结束后自动清理临时 checkout。它仍然使用本项目已安装的 `keel`，不会依赖同级 askit 源码目录，也不会修改 askit 仓库。
 
 ## 常见问题
 
@@ -124,14 +133,16 @@ corepack yarn pod:install
 
 这是 guest bundle 与当前 `keel/main` 运行时不匹配，或 8084 提供了旧 bundle。确认依赖已从 `main` 安装，并重启 `corepack yarn dev`；不要直接编辑生成的 `counterapp/app.js`。
 
-项目外部使用的是 `keel/host`、`keel/guest`，但 `keel/main` 的仓库地址仍是 `https://github.com/boomsi/rill.git`，其内部运行时名称仍保留 `__rill` 和 `RillReconciler`。这是上游仓库的命名现状，不代表项目又依赖了另一套 `rill`。
+项目使用的是自己的 fork `https://github.com/boomsi/keel.git#main`；原仓库 `https://github.com/Actrium/keel.git` 作为 `upstream` 保持不变。具体运行时命名以 fork 当前锁定的 commit 为准，更新依赖后不要混用不同来源的 host 与 guest bundle。
 
 ## 相关脚本
 
 | 命令 | 作用 |
 | --- | --- |
 | `corepack yarn dev` | 构建 guest、启动 Metro `8084` 并监听 guest 源码 |
-| `corepack yarn build:guest` | 只构建 guest bundle |
+| `corepack yarn build` | 只构建 guest bundle，根目录的标准构建入口 |
+| `corepack yarn build:guest` | `build` 的兼容别名 |
+| `corepack yarn build:askc` | 通过 SSH 拉取 askit CLI 并生成 `counterapp/counterapp.askc` |
 | `corepack yarn ios` | 编译并启动 iOS Simulator |
 | `corepack yarn android` | 启动 Android 调试构建 |
 | `corepack yarn pod:install` | 安装 iOS CocoaPods 原生依赖 |

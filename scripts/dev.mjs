@@ -36,7 +36,7 @@ function runGuestBuild() {
     return;
   }
 
-  buildProcess = spawnYarn(['build:guest'], {
+  buildProcess = spawnYarn(['build'], {
     cwd: projectRoot,
     stdio: 'inherit',
   });
@@ -80,7 +80,7 @@ function shutdown(exitCode = 0) {
 async function main() {
   // 先生成首个 bundle，再启动 Metro，避免首次请求拿到 503。
   await new Promise((resolveBuild, rejectBuild) => {
-    const initialBuild = spawnYarn(['build:guest'], {
+    const initialBuild = spawnYarn(['build'], {
       cwd: projectRoot,
       stdio: 'inherit',
     });

@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "bun node_modules/keel/src/cli/bin.ts build src/unified-app.tsx -o app.js --footer preview-footer.js --no-minify --dev",
-    "build:askc": "bun node_modules/askit/src/cli/askc.ts build --project ."
+    "build": "corepack yarn --cwd .. build",
+    "build:askc": "corepack yarn --cwd .. build:askc"
   },
   "dependencies": {
     "askit": "https://github.com/boomsi/askit.git#main",
     "dayjs": "^1.11.19",
-    "keel": "https://github.com/boomsi/rill.git#main",
+    "keel": "https://github.com/boomsi/keel.git#main",
     "react": "^19.0.0"
   },
   "devDependencies": {
