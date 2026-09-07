@@ -35,6 +35,36 @@ corepack yarn pod:install
 
 如果本机使用代理，可通过 `https_proxy` / `http_proxy` 传入代理地址；`pod:install` 默认使用 `http://127.0.0.1:7890`。
 
+## 初始化新的 AskcPreview 工程
+
+当前仓库内置了初始化 CLI，不需要发布到 npm。可以从仓库根目录把完整模板复制到外部目录：
+
+```bash
+corepack yarn init:preview ../my-preview
+```
+
+也可以直接调用 CLI：
+
+```bash
+node cli/create-askc-preview.cjs ../my-preview
+```
+
+目标目录非空时默认拒绝覆盖；确认需要覆盖同名文件时加上 `--force`：
+
+```bash
+corepack yarn init:preview ../my-preview --force
+```
+
+如果以后为 AskcPreview 配置了 Git SSH 地址，也可以不发布 npm，直接从 Git 仓库执行 CLI：
+
+```bash
+npm exec --yes \
+  --package=git+ssh://git@github.com:<owner>/<askc-preview-repo>.git \
+  -- create-askc-preview ../my-preview
+```
+
+这里的 `<owner>/<askc-preview-repo>` 需要替换为 AskcPreview 自己的仓库地址，不能使用 `askit` 或 `keel` 的仓库地址。
+
 ## 启动调试
 
 ### 1. 启动开发服务
@@ -140,6 +170,7 @@ corepack yarn pod:install
 | 命令 | 作用 |
 | --- | --- |
 | `corepack yarn dev` | 构建 guest、启动 Metro `8084` 并监听 guest 源码 |
+| `corepack yarn init:preview [dir]` | 将当前完整工程模板初始化到目标目录 |
 | `corepack yarn build` | 只构建 guest bundle，根目录的标准构建入口 |
 | `corepack yarn build:guest` | `build` 的兼容别名 |
 | `corepack yarn build:askc` | 通过 SSH 拉取 askit CLI 并生成 `counterapp/counterapp.askc` |

@@ -4,6 +4,7 @@
   "private": true,
   "packageManager": "yarn@4.18.0",
   "scripts": {
+    "init:preview": "node cli/create-askc-preview.cjs",
     "build": "bun node_modules/keel/src/cli/bin.ts build counterapp/src/unified-app.tsx -o counterapp/app.js --footer counterapp/preview-footer.js --no-minify --dev",
     "build:guest": "corepack yarn build",
     "build:askc": "bash scripts/build-askc.sh",
@@ -14,6 +15,9 @@
     "lint": "eslint .",
     "test": "jest",
     "pod:install": "bash scripts/pod-install.sh"
+  },
+  "bin": {
+    "create-askc-preview": "./cli/create-askc-preview.cjs"
   },
   "dependencies": {
     "@react-native/new-app-screen": "0.83.0",
