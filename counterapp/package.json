@@ -1,0 +1,19 @@
+{
+  "name": "counterapp",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "bun node_modules/keel/src/cli/bin.ts build src/unified-app.tsx -o app.js --footer preview-footer.js --no-minify --dev",
+    "build:askc": "bun node_modules/askit/src/cli/askc.ts build --project ."
+  },
+  "dependencies": {
+    "askit": "https://github.com/boomsi/askit.git#main",
+    "dayjs": "^1.11.19",
+    "keel": "https://github.com/boomsi/rill.git#main",
+    "react": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "typescript": "^5.7.2"
+  }
+}

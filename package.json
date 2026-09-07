@@ -2,17 +2,23 @@
   "name": "AskcPreview",
   "version": "0.0.1",
   "private": true,
+  "packageManager": "yarn@4.18.0",
   "scripts": {
+    "build:guest": "bun node_modules/keel/src/cli/bin.ts build counterapp/src/unified-app.tsx -o counterapp/app.js --footer counterapp/preview-footer.js --no-minify --dev",
+    "dev": "node scripts/dev.mjs",
+    "start": "corepack yarn dev",
+    "ios": "corepack yarn build:guest && bash scripts/run-ios.sh",
     "android": "react-native run-android",
-    "ios": "react-native run-ios",
     "lint": "eslint .",
-    "start": "react-native start",
-    "test": "jest"
+    "test": "jest",
+    "pod:install": "bash scripts/pod-install.sh"
   },
   "dependencies": {
+    "@react-native/new-app-screen": "0.83.0",
+    "askit": "https://github.com/boomsi/askit.git#main",
+    "keel": "https://github.com/boomsi/rill.git#main",
     "react": "19.2.0",
     "react-native": "0.83.0",
-    "@react-native/new-app-screen": "0.83.0",
     "react-native-safe-area-context": "^5.5.2"
   },
   "devDependencies": {
@@ -31,6 +37,7 @@
     "@types/react-test-renderer": "^19.1.0",
     "eslint": "^8.19.0",
     "jest": "^29.6.3",
+    "oxc-parser": "^0.26.0",
     "prettier": "2.8.8",
     "react-test-renderer": "19.2.0",
     "typescript": "^5.8.3"

@@ -1,97 +1,139 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# AskcPreview
 
-# Getting Started
+Askc 预览器：使用 React Native 宿主加载并预览 Keel guest bundle。
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## 环境要求
 
-## Step 1: Start Metro
+- Node.js `>=20`
+- Yarn `4.18.0`（项目已固定版本）
+- Bun（用于构建 guest bundle）
+- iOS 调试：Xcode、CocoaPods、已启动的 iOS Simulator
+- Android 调试：Android Studio、Android SDK 和已启动的模拟器或设备
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+## 首次安装
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+在项目根目录执行：
 
-```sh
-# Using npm
-npm start
-
-# OR using Yarn
-yarn start
+```bash
+corepack yarn install
 ```
 
-## Step 2: Build and run your app
+`askit` 和 `keel` 都直接从 GitHub 的 `main` 分支安装，不需要额外准备同级目录。
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+如果本机的 `yarn` 命令仍指向旧的全局 Yarn，可直接使用项目内固定版本：
 
-### Android
-
-```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
+```bash
+node .yarn/releases/yarn-stable-temp.cjs install
 ```
 
-### iOS
+首次进行 iOS 调试，安装原生依赖：
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
+```bash
+corepack yarn pod:install
 ```
 
-Then, and every time you update your native dependencies, run:
+如果本机使用代理，可通过 `https_proxy` / `http_proxy` 传入代理地址；`pod:install` 默认使用 `http://127.0.0.1:7890`。
 
-```sh
-bundle exec pod install
+## 启动调试
+
+### 1. 启动开发服务
+
+```bash
+corepack yarn dev
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+这个命令会：
 
-```sh
-# Using npm
-npm run ios
+1. 构建 `counterapp/src/unified-app.tsx` 为 `counterapp/app.js`；
+2. 启动 Metro，端口为 `8084`；
+3. 监听 `counterapp/src`、guest footer 以及 `askit` / `keel` 源码变化；
+4. guest 源码修改后自动重新构建，预览器检测到新 bundle 后自动重载。
 
-# OR using Yarn
-yarn ios
+`corepack yarn start` 是 `corepack yarn dev` 的别名。Metro 不会由其他命令自动启动，8084 需要保持这个终端进程运行。
+
+### 2. 启动 iOS
+
+先打开并启动一台 iOS Simulator，然后在另一个终端执行：
+
+```bash
+corepack yarn ios
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+`corepack yarn ios` 会编译、安装并启动模拟器中的 AskcPreview。iOS 宿主和 guest bundle 都使用 Metro 的 `8084` 端口，因此 `corepack yarn dev` 必须保持运行。
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+### 3. 启动 Android
 
-## Step 3: Modify your app
+保持 `corepack yarn dev` 运行，再执行：
 
-Now that you have successfully run the app, let's make changes!
+```bash
+corepack yarn android
+```
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+### 停止开发服务
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+在运行 `corepack yarn dev` 的终端按 `Ctrl+C`。如果 8084 仍被占用，先查出进程再结束它：
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+```bash
+lsof -nP -iTCP:8084 -sTCP:LISTEN
+kill <PID>
+```
 
-## Congratulations! :tada:
+## 日常开发
 
-You've successfully run and modified your React Native App. :partying_face:
+- 修改 `App.tsx`：由 React Native Fast Refresh 更新宿主页面。
+- 修改 `counterapp/src`：`corepack yarn dev` 自动重新生成 guest bundle，预览器自动重载 guest。
+- 修改 `counterapp/preview-footer.js`：同样会触发 guest bundle 重建。
+- 只想手动构建 guest bundle：
 
-### Now what?
+  ```bash
+  corepack yarn build:guest
+  ```
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+## 常见问题
 
-# Troubleshooting
+### `keel/host could not be found`
 
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+确认 8084 没有残留进程后，重新安装依赖并启动 Metro：
 
-# Learn More
+```bash
+corepack yarn install
+corepack yarn dev
+```
 
-To learn more about React Native, take a look at the following resources:
+如果刚切换过依赖来源，先重新执行一次：
 
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+```bash
+corepack yarn install
+```
+
+如果 `corepack yarn install` 报 `Unsupported workflow` 或 `invalid key: core.autocrlf`，说明 Corepack 没有使用项目固定版本；改用上面的项目内固定 Yarn 命令。
+
+### guest bundle 加载失败或页面没有更新
+
+确认 `corepack yarn dev` 正在运行，并检查终端是否出现 guest bundle 构建错误。必要时停止并重新启动 `corepack yarn dev`，确保 Metro 使用最新配置。
+
+### iOS CocoaPods 依赖异常
+
+重新执行：
+
+```bash
+corepack yarn pod:install
+```
+
+### `Cannot read property 'setup'` 或 guest 区域白屏
+
+这是 guest bundle 与当前 `keel/main` 运行时不匹配，或 8084 提供了旧 bundle。确认依赖已从 `main` 安装，并重启 `corepack yarn dev`；不要直接编辑生成的 `counterapp/app.js`。
+
+项目外部使用的是 `keel/host`、`keel/guest`，但 `keel/main` 的仓库地址仍是 `https://github.com/boomsi/rill.git`，其内部运行时名称仍保留 `__rill` 和 `RillReconciler`。这是上游仓库的命名现状，不代表项目又依赖了另一套 `rill`。
+
+## 相关脚本
+
+| 命令 | 作用 |
+| --- | --- |
+| `corepack yarn dev` | 构建 guest、启动 Metro `8084` 并监听 guest 源码 |
+| `corepack yarn build:guest` | 只构建 guest bundle |
+| `corepack yarn ios` | 编译并启动 iOS Simulator |
+| `corepack yarn android` | 启动 Android 调试构建 |
+| `corepack yarn pod:install` | 安装 iOS CocoaPods 原生依赖 |
+| `corepack yarn lint` | 执行 ESLint |
+| `corepack yarn test` | 执行 Jest 测试 |
