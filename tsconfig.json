@@ -4,5 +4,8 @@
     "types": ["jest"],
   },
   "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["**/node_modules", "**/Pods"]
+  // counterapp 是 guest 工程，用自己的 tsconfig（paths 强制 askit 解析到 guest entry）。
+  // 根 program 是宿主侧，askit 经 react-native 条件解析到 host entry；
+  // 同一个 program 无法让 'askit' 对 host/guest 两侧都解析正确，因此分开检查。
+  "exclude": ["**/node_modules", "**/Pods", "counterapp"]
 }

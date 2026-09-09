@@ -1,4 +1,4 @@
-/* global __rill_sendBatch, globalThis */
+/* global __keel_sendBatch, globalThis */
 
 /**
  * 预览器专用 footer：只展示 right 面板，并由宿主预览层负责滚动。
@@ -10,7 +10,7 @@
 
 (function () {
   // 只在 keel/main guest 运行时已注入且具备批量发送能力时启动预览渲染。
-  if (typeof __rill_sendBatch === 'function' && globalThis.__rill && globalThis.__rill.guest) {
+  if (typeof __keel_sendBatch === 'function' && globalThis.__keel && globalThis.__keel.guest) {
     try {
       var React = globalThis.React;
       // guest 没有 React 运行时就停止渲染，避免继续访问未注入的全局对象。
@@ -19,16 +19,16 @@
         return;
       }
 
-      var RillReconciler = globalThis.RillReconciler;
+      var KeelReconciler = globalThis.KeelReconciler;
       // reconciler 未注入时无法把 guest 树发送到宿主，直接输出可定位日志。
-      if (!RillReconciler || !RillReconciler.render) {
-        console.error('[askc-preview] RillReconciler not found, cannot render');
+      if (!KeelReconciler || !KeelReconciler.render) {
+        console.error('[askc-preview] KeelReconciler not found, cannot render');
         return;
       }
 
       // 优先读取预览 guest 显式登记的导出，避免 CJS module.exports 丢失 named export。
       var GuestExport =
-        globalThis.__ASKC_PREVIEW_GUEST__ || globalThis.__rill.guest;
+        globalThis.__ASKC_PREVIEW_GUEST__ || globalThis.__keel.guest;
 
       // usePanels 应用在预览器中只渲染 right 面板，避免空的 left 面板占用一半高度。
       if (typeof GuestExport.usePanels === 'function') {
@@ -51,9 +51,9 @@
           );
         }
 
-        RillReconciler.render(
+        KeelReconciler.render(
           React.createElement(PreviewPanelWrapper),
-          __rill_sendBatch
+          __keel_sendBatch
         );
         return;
       }
@@ -66,7 +66,7 @@
         console.warn('[askc-preview] No valid guest component found');
         return;
       }
-      RillReconciler.render(React.createElement(Component), __rill_sendBatch);
+      KeelReconciler.render(React.createElement(Component), __keel_sendBatch);
     } catch (error) {
       console.error('[askc-preview] Auto-render failed:', error);
     }

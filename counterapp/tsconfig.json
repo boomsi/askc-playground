@@ -10,7 +10,11 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "moduleResolution": "bundler",
-    "baseUrl": "."
+    "baseUrl": ".",
+    "paths": {
+      // Guest 源码必须解析根目录安装的 askit guest entry，避免 React Native 条件误选 Host entry。
+      "askit": ["../node_modules/askit/src/index.guest.ts"]
+    }
   },
   "include": ["src/**/*", "../../src/askc-host/main"],
   "exclude": ["**/node_modules/**"]

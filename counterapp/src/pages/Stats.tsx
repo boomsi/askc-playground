@@ -28,11 +28,6 @@ type AppInfo = {
   languageContents?: Record<string, { description?: string }>;
 };
 
-type LanguageList = {
-  current: string;
-  languages: string[];
-};
-
 const supportedLanguages: LanguageOption[] = [
   {
     id: 'en',
@@ -140,12 +135,12 @@ export default function Stats() {
   }, []);
 
   useEffect(() => {
-    ask.call<AppInfo>('GET_APP_INFO').then((appInfo) => {
-      setStatsData(appInfo);
+    ask.call('GET_APP_INFO').then((appInfo) => {
+      setStatsData(appInfo as AppInfo);
     });
 
-    ask.call<LanguageList>('GET_LANGUAGE_LIST').then((result) => {
-      const langs = result.languages;
+    ask.call('GET_LANGUAGE_LIST').then((result) => {
+      const langs = result.languages as string[];
 
       setLanguages(
         supportedLanguages.filter(({ id }) => langs.includes(id)),
@@ -211,7 +206,7 @@ export default function Stats() {
         </View>
       </View>
 
-      <View style={styles.section}>
+      {/* <View style={styles.section}>
         <Text style={styles.sectionTitle}>工具栏入口</Text>
         {TOOLBOX_ENTRIES.map((entry) => {
           const visible = toolbox[entry.key];
@@ -238,7 +233,7 @@ export default function Stats() {
             </TouchableOpacity>
           );
         })}
-      </View>
+      </View> */}
     </View>
   );
 }

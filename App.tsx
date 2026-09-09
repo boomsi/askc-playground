@@ -2,8 +2,7 @@
  * askc 预览器：RN + keel 真实运行时 + askit 组件真实现 + fixture 宿主。
  *
  * 与 loom 同一条代码路径（Engine / Bridge / Receiver / JSC），仅宿主业务
- * handler 换成 fixture；askit/main 不再导出旧版 EventHandler，因此业务事件
- * 通过 askit 的 EventEmitter 接入当前 Bridge。
+ * handler 换成 fixture；Guest -> Host 业务事件通过 askit 的 EventHandler 接入当前 Bridge。
  */
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -16,7 +15,9 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Engine } from 'keel/host';
 import { DefaultComponents, EngineView } from 'keel/host/preset';
 import { createEngineAdapter, components as askitComponents } from 'askit/core';
-import { EventEmitter } from 'askit';
+import { EventHandler } from 'askit';
+import type { HandlerRegistry } from 'askit';
+import { PreviewEventToast, type PreviewEventToastRef } from './PreviewEventToast';
 
 // 与 Loom extensionPanel.phoneWidthRatio 保持一致，复刻 Phone 宿主的面板宽度。
 const PHONE_PANEL_WIDTH_RATIO = 0.8;
@@ -32,113 +33,68 @@ type PreviewRuntime = {
   dispose: () => void;
 };
 
-type PreviewRequestPayload = Record<string, unknown>;
-type PreviewResponsePayload = Record<string, unknown>;
-type PreviewHandler = (
-  payload: PreviewRequestPayload
-) => Promise<PreviewResponsePayload>;
-
-// 将 guest 请求事件映射到 ask 合约约定的响应事件。
-const previewResponseEvents: Record<string, string> = {
-  GET_APP_INFO: 'SEND_APP_INFO',
-  GET_LANGUAGE_LIST: 'LANGUAGE_LIST',
-  SET_APP_LANGUAGE: 'SET_APP_LANGUAGE_RESULT',
-  SET_TOOLBOX_ENTRIES: 'SET_TOOLBOX_ENTRIES_RESULT',
-  CLEAR_CHAT_HISTORY: 'CLEAR_CHAT_HISTORY_RESULT',
-  CLOSE_EXTENSION: 'CLOSE_EXTENSION_RESULT',
-  SEND_EMAIL: 'SEND_EMAIL_RESULT',
-  HTTP_REQUEST: 'HTTP_RESPONSE',
-};
-
 // 预览器提供的 fixture 业务处理器，替代 Loom 中真实宿主的业务实现。
-const previewHandlers: Record<string, PreviewHandler> = {
-  GET_APP_INFO: async () => ({
-    appName: 'counterapp（预览）',
-    logo: '',
-    favoriteCount: 1,
-    usedCount: 2,
-    author: 'askc-preview',
-    languageContents: {
-      'zh-Hans': { description: '这是预览器里的应用介绍（fixture 数据）。' },
-      en: { description: 'App intro from the preview fixture.' },
-      ja: { description: 'プレビューのアプリ紹介です。' },
+// 与 Loom 的 useExtensionEvent 同构：每个 handler 各自先打印收到的业务载荷
+// （对应 Loom 各 handler 里的 console.log），再执行 fixture 逻辑。
+// handler 入参是 askit EventHandler 拆分 requestId 后的业务对象，打印天然不含管道字段。
+// 响应事件由 askit/contracts 的 EVENT_PAIRS 统一决定，避免 Preview 自己维护一份映射。
+function createPreviewHandlers(
+  notify: (event: string, payload: unknown) => void
+): HandlerRegistry {
+  return {
+    GET_APP_INFO: async (payload) => {
+      notify('GET_APP_INFO', payload);
+      return {
+        appName: 'counterapp（预览）',
+        logo: '',
+        favoriteCount: 1,
+        usedCount: 2,
+        author: 'askc-preview',
+        languageContents: {
+          'zh-Hans': { description: '这是预览器里的应用介绍（fixture 数据）。' },
+          en: { description: 'App intro from the preview fixture.' },
+          ja: { description: 'プレビューのアプリ紹介です。' },
+        },
+      };
     },
-  }),
-  GET_LANGUAGE_LIST: async () => ({
-    current: 'zh-Hans',
-    languages: ['zh-Hans', 'en', 'ja'],
-  }),
-  SET_APP_LANGUAGE: async () => ({ success: true }),
-  SET_TOOLBOX_ENTRIES: async () => ({ success: true }),
-  CLEAR_CHAT_HISTORY: async () => ({ success: true }),
-  CLOSE_EXTENSION: async () => ({ success: true }),
-  SEND_EMAIL: async () => ({ success: true }),
-  HTTP_REQUEST: async (payload) => {
-    const url = String(payload.url ?? '');
-    const method = String(payload.method ?? 'GET');
-    const headers = (payload.headers ?? undefined) as Record<string, string> | undefined;
-    const requestBody = payload.body;
-    const response = await fetch(url, {
-      method,
-      headers,
-      body: requestBody === undefined ? undefined : JSON.stringify(requestBody),
-    });
-    const contentType = response.headers.get('content-type') ?? '';
-    const data = contentType.includes('json') ? await response.json() : await response.text();
-
-    return {
-      data,
-      status: response.status,
-      success: response.ok,
-    };
-  },
-};
-
-/**
- * 注册预览器业务事件，并在请求完成后通过当前 Engine 回传响应。
- * askit/main 已经移除了旧版 EventHandler.setup，业务事件现在走 EventEmitter。
- */
-function registerPreviewHandlers(engine: Engine): () => void {
-  const removers = Object.entries(previewHandlers).map(([requestEvent, handler]) => {
-    const responseEvent = previewResponseEvents[requestEvent];
-
-    // 响应事件缺失时属于预览器配置错误，避免注册一个无法完成请求的监听器。
-    if (!responseEvent) {
-      throw new Error(`Missing preview response event for ${requestEvent}`);
-    }
-
-    return EventEmitter.on(requestEvent, async (payload) => {
-      const request = (payload ?? {}) as PreviewRequestPayload;
-      const requestId = typeof request.requestId === 'string' ? request.requestId : undefined;
-
-      try {
-        const result = await handler(request);
-        engine.sendEvent(responseEvent, {
-          ...result,
-          ...(requestId ? { requestId } : {}),
-        });
-      } catch (error) {
-        // 将宿主异常转成 ask 响应，避免 guest 端只能等待超时。
-        engine.sendEvent(responseEvent, {
-          error: error instanceof Error ? error.message : String(error),
-          requestId,
-          success: false,
-        });
-      }
-    });
-  });
-
-  return () => {
-    removers.forEach((remove) => remove());
+    GET_LANGUAGE_LIST: async (payload) => {
+      notify('GET_LANGUAGE_LIST', payload);
+      return {
+        current: 'zh-Hans',
+        languages: ['zh-Hans', 'en', 'ja'],
+      };
+    },
+    SET_APP_LANGUAGE: async (payload) => {
+      notify('SET_APP_LANGUAGE', payload);
+      return { success: true };
+    },
+    SET_TOOLBOX_ENTRIES: async (payload) => {
+      notify('SET_TOOLBOX_ENTRIES', payload);
+      return { success: true };
+    },
+    CLEAR_CHAT_HISTORY: async (payload) => {
+      notify('CLEAR_CHAT_HISTORY', payload);
+      return { success: true };
+    },
+    CLOSE_EXTENSION: async (payload) => {
+      notify('CLOSE_EXTENSION', payload);
+      return { success: true };
+    },
+    SEND_EMAIL: async (payload) => {
+      notify('SEND_EMAIL', payload);
+      return { success: true };
+    },
   };
 }
 
 /**
- * 创建一套与当前 guest bundle 绑定的宿主运行时。
- * bundle 更新后会销毁旧 Engine，再创建新 Engine，避免 EngineView 因 isLoaded
- * 而继续复用旧 bundle。
+ * 创建与 Loom 相同的 Guest -> Host 事件分发入口。
+ * EventHandler 负责 requestId 拆分、响应事件匹配和 Host -> Guest 回传；
+ * 与 Loom 的区别仅在 handler 实现：Loom 执行真实业务，Preview 打印事件并返回 fixture。
  */
-function createPreviewRuntime(): PreviewRuntime {
+function createPreviewRuntime(
+  onGuestEvent: (event: string, payload: unknown) => void
+): PreviewRuntime {
   const engine = new Engine({
     debug: false,
     // guest 沙箱的 console 直通到 metro 终端（默认被吞，排障两眼一抹黑）
@@ -149,7 +105,10 @@ function createPreviewRuntime(): PreviewRuntime {
     },
   });
   engine.register({ ...DefaultComponents, ...askitComponents });
-  const removePreviewHandlers = registerPreviewHandlers(engine);
+  const removeEventHandler = EventHandler.setup(engine, {
+    tabId: 'preview',
+    handlers: createPreviewHandlers(onGuestEvent),
+  });
   const adapter = createEngineAdapter(engine);
   let disposed = false;
 
@@ -159,7 +118,7 @@ function createPreviewRuntime(): PreviewRuntime {
       // dispose 可能同时被 bundle 重载和组件卸载触发，只执行一次清理。
       if (disposed) return;
       disposed = true;
-      removePreviewHandlers();
+      removeEventHandler();
       adapter.dispose();
       engine.destroy();
     },
@@ -168,6 +127,8 @@ function createPreviewRuntime(): PreviewRuntime {
 
 export default function App() {
   const runtimeRef = useRef<PreviewRuntime | null>(null);
+  // 保存 Preview 事件 Toast 的命令式引用，让 Engine 收到消息时可以立即展示提示。
+  const eventToastRef = useRef<PreviewEventToastRef>(null);
   // 用于在 bundle 更新后触发 App 重渲染，让 EngineView 接收到新的 Engine 实例。
   const [, setRuntimeRevision] = useState(0);
   // 读取真实窗口宽度，让预览面板和 Loom 在手机 / 平板窗口下使用相同宽度规则。
@@ -180,7 +141,9 @@ export default function App() {
     : PAD_PANEL_WIDTH;
   // 首次渲染时创建宿主运行时；后续 bundle 重载只替换 runtimeRef 当前实例。
   if (!runtimeRef.current) {
-    runtimeRef.current = createPreviewRuntime();
+    runtimeRef.current = createPreviewRuntime((event, payload) => {
+      eventToastRef.current?.show(event, payload);
+    });
   }
 
   useEffect(() => {
@@ -207,7 +170,10 @@ export default function App() {
 
         knownVersion = nextVersion;
         runtimeRef.current?.dispose();
-        runtimeRef.current = createPreviewRuntime();
+        // Bundle 重载时保留同一套事件提示回调，让新 Engine 的消息继续显示在 Preview 上。
+        runtimeRef.current = createPreviewRuntime((event, eventPayload) => {
+          eventToastRef.current?.show(event, eventPayload);
+        });
         setRuntimeRevision((revision) => revision + 1);
       } catch {
         // 开发服务器短暂重启时忽略本轮失败，下一轮自动恢复检查。
@@ -251,6 +217,8 @@ export default function App() {
               source="http://localhost:8084/guest/app.js"
               style={styles.guest}
             />
+            {/* 事件提示固定在 Preview 面板右上角，不参与 guest 内容布局。 */}
+            <PreviewEventToast ref={eventToastRef} />
           </View>
         </View>
       </SafeAreaView>
