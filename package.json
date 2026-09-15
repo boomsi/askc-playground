@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@react-native/new-app-screen": "0.83.0",
-    "askit": "https://github.com/boomsi/askit.git#main",
+    "askit": "https://github.com/boomsi/askit/archive/refs/heads/main.tar.gz",
     "keel": "https://github.com/boomsi/keel.git#main",
     "react": "19.2.0",
     "react-native": "0.83.0",

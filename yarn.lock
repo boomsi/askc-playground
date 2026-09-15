@@ -2751,7 +2751,7 @@ __metadata:
     "@types/jest": "npm:^29.5.13"
     "@types/react": "npm:^19.2.0"
     "@types/react-test-renderer": "npm:^19.1.0"
-    askit: "https://github.com/boomsi/askit.git#main"
+    askit: "https://github.com/boomsi/askit/archive/refs/heads/main.tar.gz"
     eslint: "npm:^8.19.0"
     jest: "npm:^29.6.3"
     keel: "https://github.com/boomsi/keel.git#main"
@@ -2762,6 +2762,8 @@ __metadata:
     react-native-safe-area-context: "npm:^5.5.2"
     react-test-renderer: "npm:19.2.0"
     typescript: "npm:^5.8.3"
+  bin:
+    create-askc-preview: ./cli/create-askc-preview.cjs
   languageName: unknown
   linkType: soft
 
@@ -3036,17 +3038,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"askit@https://github.com/boomsi/askit.git#main":
+"askit@https://github.com/boomsi/askit/archive/refs/heads/main.tar.gz":
   version: 0.1.0
-  resolution: "askit@https://github.com/boomsi/askit.git#commit=5cf77349e4d91b080118dcd86d7be98d0ab7f277"
+  resolution: "askit@https://github.com/boomsi/askit/archive/refs/heads/main.tar.gz"
+  dependencies:
+    commander: "npm:^14.0.2"
   peerDependencies:
     react: ^19.0.0
     react-native: ^0.79.0
-    rill: "workspace:*"
   peerDependenciesMeta:
     react-native:
       optional: true
-  checksum: 10/96f8cce74805d2e73d6f47f2969a906ad403a2b31e847e3c67da3c2aa850e9c1914d165e402ba4c7c2cb13173913a4c045ffc5f2bc2966c0c31741cf4f86634a
+  checksum: 10/014b71ff7c97f04a2757a90e2b3e6e44eec3ec61357794fca1a646b08f0d0929aa34d56b075beccc295efe31de4c33d31bc391df53627f92b74fe50396be5087
   languageName: node
   linkType: hard
 
@@ -3611,6 +3614,13 @@ __metadata:
   version: 12.1.0
   resolution: "commander@npm:12.1.0"
   checksum: 10/cdaeb672d979816853a4eed7f1310a9319e8b976172485c2a6b437ed0db0a389a44cfb222bfbde772781efa9f215bdd1b936f80d6b249485b465c6cb906e1f93
+  languageName: node
+  linkType: hard
+
+"commander@npm:^14.0.2":
+  version: 14.0.3
+  resolution: "commander@npm:14.0.3"
+  checksum: 10/dfa9ebe2a433d277de5cb0252d23b10a543d245d892db858d23b516336a835c50fd4f52bee4cd13c705cc8acb6f03dc632c73dd806f7d06d3353eb09953dd17a
   languageName: node
   linkType: hard
 
@@ -6161,7 +6171,7 @@ __metadata:
 
 "keel@https://github.com/boomsi/keel.git#main":
   version: 0.1.0
-  resolution: "keel@https://github.com/boomsi/keel.git#commit=ae153c9893ca0e6e7f30afdd483b6db87098740c"
+  resolution: "keel@https://github.com/boomsi/keel.git#commit=296ed6748b8749a0b8de6f78d127ce2f9474805c"
   dependencies:
     "@babel/runtime": "npm:^7.28.6"
   peerDependencies:
@@ -6177,8 +6187,8 @@ __metadata:
     react-native-web:
       optional: true
   bin:
-    rill: ./src/cli/bin.ts
-  checksum: 10/7c85e4a93b9f3dd24376326145b589488da225b75fd26833a87239e1017dfe5d27cca797522dd0bfd179562b597903304ef20371b514368ebd2b6e08309ec46b
+    keel: ./src/cli/bin.ts
+  checksum: 10/080e91595a9b85e42e0bf0d5952f1530f5f0bb4ef74969a0f35b6d2eaeeb035b6baf9bdc6a51fb8b012f2c18ab1c0a853418e69e23fadcf2b043b5e6684ed39f
   languageName: node
   linkType: hard
 
