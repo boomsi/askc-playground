@@ -1,2 +1,3 @@
 # Generated guest bundle is an output artifact, not source code.
 counterapp/app.js
+counterapp/preview-app.js

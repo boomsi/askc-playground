@@ -26,64 +26,37 @@ if [[ ! -f "$COUNTERAPP_DIR/manifest.json" ]]; then
   exit 1
 fi
 
-# askc CLI 通过 import('keel/cli') 加载构建器，因此必须先确认项目已有 keel 依赖。
-if [[ -d "$COUNTERAPP_DIR/node_modules/keel" ]]; then
-  KEEL_PACKAGE_DIR="$COUNTERAPP_DIR/node_modules/keel"
-elif [[ -d "$PROJECT_ROOT/node_modules/keel" ]]; then
-  KEEL_PACKAGE_DIR="$PROJECT_ROOT/node_modules/keel"
-else
-  echo "[build:askc] 未找到 keel 依赖，请先在根目录安装项目依赖。" >&2
+# askc CLI 打包时执行 counterapp 的 npm run build，该脚本直调 counterapp 内的 keel CLI。
+if [[ ! -d "$COUNTERAPP_DIR/node_modules/keel" ]]; then
+  echo "[build:askc] 未找到 counterapp/node_modules/keel，请先在 counterapp 安装依赖。" >&2
   exit 1
 fi
 
-# 将临时 checkout 放在 counterapp 下，使 Bun 能沿父目录解析到 counterapp/node_modules 或根 node_modules。
-BUILD_TEMP_DIR="$(mktemp -d "$COUNTERAPP_DIR/.askc-build.XXXXXX")"
+# askc CLI 不随 askit 的 npm 包发布（files 不含 cli），从远程拉临时副本执行。
+# 打包 footer 由 counterapp 的 build 脚本指定（node_modules/askit 的 askc-footer.js），与本脚本无关。
+BUILD_TEMP_DIR="$(mktemp -d)"
 ASKIT_DIR="$BUILD_TEMP_DIR/askit"
-TEMP_FOOTER="$COUNTERAPP_DIR/askc-footer.js"
-ORIGINAL_FOOTER="$BUILD_TEMP_DIR/original-askc-footer.js"
-HAD_ORIGINAL_FOOTER=0
-
-restore_files() {
-  if [[ "$HAD_ORIGINAL_FOOTER" == "1" ]]; then
-    cp "$ORIGINAL_FOOTER" "$TEMP_FOOTER"
-  else
-    rm -f "$TEMP_FOOTER"
-  fi
-  rm -rf "$BUILD_TEMP_DIR"
-}
-
-trap restore_files EXIT
+trap 'rm -rf "$BUILD_TEMP_DIR"' EXIT
 
 echo "[build:askc] 通过 SSH 拉取 askit@$ASKIT_REF ..."
 git clone --depth 1 --single-branch --branch "$ASKIT_REF" "$ASKIT_REPOSITORY" "$ASKIT_DIR"
 
 ASKC_CLI="$ASKIT_DIR/cli/askc.ts"
-ASKC_FOOTER="$ASKIT_DIR/src/cli/askc-footer.js"
 if [[ ! -f "$ASKC_CLI" ]]; then
   echo "[build:askc] askit@$ASKIT_REF 中缺少 cli/askc.ts。" >&2
-  exit 1
-fi
-if [[ ! -f "$ASKC_FOOTER" ]]; then
-  echo "[build:askc] askit@$ASKIT_REF 中缺少 src/cli/askc-footer.js。" >&2
-  exit 1
-fi
-
-if [[ -e "$TEMP_FOOTER" ]]; then
-  cp "$TEMP_FOOTER" "$ORIGINAL_FOOTER"
-  HAD_ORIGINAL_FOOTER=1
-fi
-
-# askc CLI 固定读取工程根目录的 askc-footer.js；临时注入远程 askit 自带 footer，构建结束后恢复。
-# runtime 的 sendBatch 定义位于 guest 子模块中，bundle.ts 入口稳定暴露 Reconciler 名称，因此检测入口名称。
-if grep -Eq '__keel_|KeelReconciler|__KEEL_' "$KEEL_PACKAGE_DIR/src/guest/bundle.ts"; then
-  cp "$ASKC_FOOTER" "$TEMP_FOOTER"
-elif grep -Eq '__rill_|RillReconciler|__RILL_' "$KEEL_PACKAGE_DIR/src/guest/bundle.ts"; then
-  # 当前锁定的旧 Keel 仍使用 rill 全局名，将 askit footer 适配到同一运行时命名。
-  sed -e 's/__keel/__rill/g' -e 's/Keel/Rill/g' "$ASKC_FOOTER" > "$TEMP_FOOTER"
-else
-  echo "[build:askc] 无法识别当前 keel 的 guest runtime 命名，拒绝生成不匹配的 askc 包。" >&2
   exit 1
 fi
 
 echo "[build:askc] 构建 counterapp.askc ..."
 bun "$ASKC_CLI" build --project "$COUNTERAPP_DIR"
+
+ASKC_FILE="$COUNTERAPP_DIR/counterapp.askc"
+if [[ ! -f "$ASKC_FILE" ]]; then
+  echo "[build:askc] 构建完成但未找到产物 $ASKC_FILE。" >&2
+  exit 1
+fi
+
+# 口径与 loom AppSessionService 的核验一致：对产物文件原始字节计算 sha256（小写 hex）。
+ASKC_SHA256="$(shasum -a 256 "$ASKC_FILE" | awk '{print $1}')"
+echo "[build:askc] 产物：counterapp/counterapp.askc"
+echo "[build:askc] sha256: $ASKC_SHA256"

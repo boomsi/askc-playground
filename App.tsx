@@ -13,10 +13,11 @@ import {
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Engine } from 'keel/host';
-import { DefaultComponents, EngineView } from 'keel/host/preset';
+import { DefaultComponents } from 'keel/host/preset';
 import { createEngineAdapter, components as askitComponents } from 'askit/core';
 import { EventHandler } from 'askit';
 import type { HandlerRegistry } from 'askit';
+import { PreviewEnginePanel } from './PreviewEnginePanel';
 import { PreviewEventToast, type PreviewEventToastRef } from './PreviewEventToast';
 
 // 与 Loom extensionPanel.phoneWidthRatio 保持一致，复刻 Phone 宿主的面板宽度。
@@ -212,7 +213,7 @@ export default function App() {
               { width: extensionPanelWidth },
             ]}
           >
-            <EngineView
+            <PreviewEnginePanel
               engine={runtime!.engine}
               source="http://localhost:8084/guest/app.js"
               style={styles.guest}

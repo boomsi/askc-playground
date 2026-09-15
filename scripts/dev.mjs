@@ -11,7 +11,6 @@ const yarnCommandArgs = ['yarn'];
 const BUILD_DEBOUNCE_MS = 200;
 const watchedPaths = [
   resolve(projectRoot, 'counterapp/src'),
-  resolve(projectRoot, 'counterapp/preview-footer.js'),
   resolve(projectRoot, 'node_modules/askit/src'),
   resolve(projectRoot, 'node_modules/keel/src'),
 ];
@@ -112,7 +111,7 @@ async function main() {
     }
   }
 
-  console.log('[dev] watching guest sources and serving counterapp/app.js');
+  console.log('[dev] watching guest sources and serving counterapp/preview-app.js');
 }
 
 process.on('SIGINT', () => shutdown(0));

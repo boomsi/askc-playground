@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "corepack yarn --cwd .. build",
+    "build": "bun node_modules/keel/src/cli/bin.ts build src/unified-app.tsx -o app.js --footer node_modules/askit/src/cli/askc-footer.js --no-minify --dev",
     "build:askc": "corepack yarn --cwd .. build:askc"
   },
   "dependencies": {

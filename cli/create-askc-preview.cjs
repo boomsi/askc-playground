@@ -22,6 +22,7 @@ const EXCLUDED_DIRECTORIES = new Set([
 const EXCLUDED_FILES = new Set([
   '.DS_Store',
   'counterapp/app.js',
+  'counterapp/preview-app.js',
   'counterapp/counterapp.askc',
 ]);
 

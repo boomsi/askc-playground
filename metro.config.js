@@ -29,7 +29,7 @@ const config = mergeConfig(getDefaultConfig(__dirname), {
     enhanceMiddleware: (middleware, server) => {
       return (req, res, next) => {
         if (req.url && req.url.split('?')[0] === '/guest/app.js') {
-          const appJs = path.resolve(__dirname, 'counterapp/app.js');
+          const appJs = path.resolve(__dirname, 'counterapp/preview-app.js');
           // 返回可诊断的 HTTP 错误，避免缺少 guest bundle 时变成网络连接错误。
           if (!fs.existsSync(appJs)) {
             res.statusCode = 503;
@@ -42,7 +42,7 @@ const config = mergeConfig(getDefaultConfig(__dirname), {
           return;
         }
         if (req.url && req.url.split('?')[0] === '/guest/app-version') {
-          const appJs = path.resolve(__dirname, 'counterapp/app.js');
+          const appJs = path.resolve(__dirname, 'counterapp/preview-app.js');
           // 版本接口供 Preview 检测 watch 构建是否已写入新的 guest bundle。
           if (!fs.existsSync(appJs)) {
             res.statusCode = 503;
