@@ -12,7 +12,7 @@
   "integrity": {
     "algorithm": "sha256",
     "files": {
-      "dist/unified-app.js": "09a4ec7025ac6793bc8d9eb868abb27e6e7815012637c10623b820091989a3a0"
+      "dist/unified-app.js": "64a97f0dc8c3be33bc46919b1aad94d22713f3c8a32b54636f433574fdc62abc"
     }
   }
 }
