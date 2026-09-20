@@ -37,34 +37,27 @@ corepack yarn pod:install
 
 ## 初始化新的 AskcPreview 工程
 
-当前仓库内置了初始化 CLI，不需要发布到 npm。可以从仓库根目录把完整模板复制到外部目录：
+推荐使用发布到 npm 的 CLI（零依赖轻量包，自带完整工程模板与示例 guest）：
+
+```bash
+bunx @boomsi/create-askc-preview ../my-preview
+# 或 bun 的脚手架约定（@scope/create-foo 对应 @scope/foo）
+bun create @boomsi/askc-preview ../my-preview
+```
+
+也可以从仓库本地执行（无需网络）：
 
 ```bash
 corepack yarn init:preview ../my-preview
 ```
 
-也可以直接调用 CLI：
-
-```bash
-node cli/create-askc-preview.cjs ../my-preview
-```
-
 目标目录非空时默认拒绝覆盖；确认需要覆盖同名文件时加上 `--force`：
 
 ```bash
-corepack yarn init:preview ../my-preview --force
+bunx @boomsi/create-askc-preview ../my-preview --force
 ```
 
-如果以后为 AskcPreview 配置了 Git SSH 地址，也可以不发布 npm，直接从 Git 仓库执行 CLI：
-
-```bash
-cli_dir="$(mktemp -d)"
-git clone --depth 1 git@github.com:boomsi/askc-playground.git "$cli_dir/askc-playground"
-node "$cli_dir/askc-playground/cli/create-askc-preview.cjs" ../my-preview
-rm -rf "$cli_dir"
-```
-
-当前根项目包含 React Native 等开发依赖，直接用 `npm exec --package=git+ssh://...` 会触发 npm 安装整套根依赖，并因 askit 的 `workspace:*` peer 声明失败。因此目前使用上面的 SSH 克隆方式；如果需要真正的 `npx xxx` 形式，还需要把 CLI 拆成独立的轻量 npm 包目录。
+初始化完成后依次执行 `corepack yarn install`、`corepack yarn pod:install`（首次 iOS 调试需要），然后 `corepack yarn dev` 启动开发服务。
 
 ## 启动调试
 

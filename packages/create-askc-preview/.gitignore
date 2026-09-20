@@ -1,0 +1,3 @@
+# 模板快照由 sync-template.cjs 从仓库生成，不入库。
+template/
+*.tgz

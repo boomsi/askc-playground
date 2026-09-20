@@ -4,7 +4,7 @@
   "private": true,
   "packageManager": "yarn@4.18.0",
   "scripts": {
-    "init:preview": "node cli/create-askc-preview.cjs",
+    "init:preview": "node packages/create-askc-preview/create-askc-preview.cjs",
     "build": "bun node_modules/keel/src/cli/bin.ts build counterapp/src/unified-app.tsx -o counterapp/preview-app.js --footer node_modules/askit/src/cli/askc-footer.js --no-minify --dev",
     "build:guest": "corepack yarn build",
     "build:askc": "bash scripts/build-askc.sh",

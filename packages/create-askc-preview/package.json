@@ -1,0 +1,30 @@
+{
+  "name": "@boomsi/create-askc-preview",
+  "version": "0.1.1",
+  "description": "初始化 AskcPreview 预览宿主工程（RN + keel 运行时 + 示例 guest）",
+  "license": "UNLICENSED",
+  "bin": {
+    "create-askc-preview": "./create-askc-preview.cjs"
+  },
+  "files": [
+    "create-askc-preview.cjs",
+    "template",
+    "README.md"
+  ],
+  "scripts": {
+    "sync": "node sync-template.cjs",
+    "prepack": "node sync-template.cjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/boomsi/askc-playground.git",
+    "directory": "packages/create-askc-preview"
+  }
+}
